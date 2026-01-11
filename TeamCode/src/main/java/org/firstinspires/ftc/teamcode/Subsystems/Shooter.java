@@ -26,7 +26,7 @@ public class Shooter extends SubsystemBase {
         this.hardwareMap = hardwareMap;
         this.telemetry = telemetry;
 
-        shootPID = new PIDFCoefficients(10,0,0.5,18.5);
+        shootPID = new PIDFCoefficients(24,0.00,0,22.5);
 
         shooterIzq = hardwareMap.get(DcMotorEx.class, "shooterIzq");
         shooterIzq.setDirection(DcMotorSimple.Direction.REVERSE);

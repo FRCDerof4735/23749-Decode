@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 //Mecanum
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.commands.MecanumDriveCommand;
+import org.firstinspires.ftc.teamcode.Commands.MecanumDriveCommand;
 import org.firstinspires.ftc.teamcode.Subsystems.MecanumDriveSubsystem;
 //Subsystems
 import org.firstinspires.ftc.teamcode.Subsystems.Roller;
@@ -72,11 +72,11 @@ public class TeleOpBlue extends CommandOpMode {
         //Shooter
 
         //Lejos
-        subsystemsDriver.getGamepadButton(GamepadKeys.Button.Y)
+        chassisDriver.getGamepadButton(GamepadKeys.Button.Y)
                 .whileHeld(new InstantCommand(()-> shooterSubsystem.shoot(1150)))
                 .whenReleased(new InstantCommand(()->shooterSubsystem.shoot(0)));
 
-        subsystemsDriver.getGamepadButton(GamepadKeys.Button.X)
+        chassisDriver.getGamepadButton(GamepadKeys.Button.X)
                 .whileHeld(new InstantCommand(()-> shooterSubsystem.shoot(-1400)))
                 .whenReleased(new InstantCommand(()->shooterSubsystem.shoot(0)));
 
