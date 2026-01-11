@@ -7,6 +7,8 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+import org.firstinspires.ftc.teamcode.Commands.Commands;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 @Autonomous
@@ -59,7 +61,7 @@ public class AutoAzulCerca extends LinearOpMode {
          if (opModeIsActive()) {
              Actions.runBlocking(
                      new ParallelAction(
-                             actions.maintainShooter(), // PIDF de fondo
+                             Commands.maintainShooter(), // PIDF de fondo
 
                              new SequentialAction(
                                      // --- PRELOAD ---
