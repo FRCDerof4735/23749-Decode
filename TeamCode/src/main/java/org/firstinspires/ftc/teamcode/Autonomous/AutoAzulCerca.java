@@ -10,7 +10,6 @@ import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-// Importamos tus comandos y subsistemas
 import org.firstinspires.ftc.teamcode.Commands.AutoCommands;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter;
@@ -21,19 +20,17 @@ import org.firstinspires.ftc.teamcode.Subsystems.Feeder;
 public class AutoAzulCerca extends LinearOpMode {
     @Override
     public void runOpMode() {
-        // Inicio
+        // Declarar
         Pose2d beginPose =  new Pose2d(-52, -52, Math.toRadians(225));
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
 
-        // --- INICIALIZAMOS TUS SUBSISTEMAS ---
-        Shooter myShooter = new Shooter(telemetry, hardwareMap);
-        Roller myIntake = new Roller(telemetry, hardwareMap);
-        Feeder myFeeder = new Feeder(telemetry, hardwareMap);
+        Shooter Shooter = new Shooter(telemetry, hardwareMap);
+        Roller Intake = new Roller(telemetry, hardwareMap);
+        Feeder Feeder = new Feeder(telemetry, hardwareMap);
 
-        // --- CREAMOS EL CONTROLADOR DE COMANDOS ---
-        AutoCommands robot = new AutoCommands(myShooter, myIntake, myFeeder);
+        AutoCommands robot = new AutoCommands(Shooter, Intake, Feeder);
 
-        // --- TRAYECTORIAS (Tus coordenadas originales) ---
+        // TRAYECTORIAS
 
         Action preLoad = drive.actionBuilder(beginPose)
                 .strafeToLinearHeading(new Vector2d(-38, -32), Math.toRadians(225))

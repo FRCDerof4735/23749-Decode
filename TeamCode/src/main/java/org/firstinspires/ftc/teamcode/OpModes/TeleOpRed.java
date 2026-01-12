@@ -6,22 +6,19 @@ import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.RunCommand;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
-
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-//Mecanum
 import org.firstinspires.ftc.teamcode.Commands.MecanumDriveCommand;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
-import org.firstinspires.ftc.teamcode.Subsystems.MecanumDriveSubsystem;
-//Subsystems
-import org.firstinspires.ftc.teamcode.Subsystems.Roller;
-import org.firstinspires.ftc.teamcode.Subsystems.Vision;
-import org.firstinspires.ftc.teamcode.Subsystems.Turret;
-import org.firstinspires.ftc.teamcode.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Subsystems.Feeder;
+import org.firstinspires.ftc.teamcode.Subsystems.MecanumDriveSubsystem;
+import org.firstinspires.ftc.teamcode.Subsystems.Roller;
+import org.firstinspires.ftc.teamcode.Subsystems.Shooter;
+import org.firstinspires.ftc.teamcode.Subsystems.Turret;
+import org.firstinspires.ftc.teamcode.Subsystems.Vision;
 
 @TeleOp
-public class TeleOpBlue extends CommandOpMode {
+public class TeleOpRed extends CommandOpMode {
     Roller rollerSubsystem;
     Shooter shooterSubsystem;
     Feeder feederSubsystem;
@@ -34,7 +31,7 @@ public class TeleOpBlue extends CommandOpMode {
         GamepadEx chassisDriver = new GamepadEx(gamepad1);
         GamepadEx subsystemsDriver = new GamepadEx(gamepad2);
         MecanumDrive sampleMecanumDrive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
-        MecanumDriveSubsystem driveSystem = new MecanumDriveSubsystem(sampleMecanumDrive, true, true);
+        MecanumDriveSubsystem driveSystem = new MecanumDriveSubsystem(sampleMecanumDrive, true, false);
         rollerSubsystem = new Roller(telemetry, hardwareMap);
         vision = new Vision(hardwareMap, telemetry);
         turretSubsystem = new Turret(hardwareMap, vision);
