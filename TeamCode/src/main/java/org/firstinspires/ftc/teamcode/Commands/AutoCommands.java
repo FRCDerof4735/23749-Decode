@@ -17,7 +17,7 @@ public class AutoCommands {
     private final Feeder feeder;
 
     // --- CONFIGURACIÓN DE VELOCIDADES ---
-    public static double VEL_MOVIMIENTO = 750; // Velocidad suave (Preload)
+    public static double VEL_MOVIMIENTO = 600; // Velocidad suave (Preload)
     public static double VEL_CERCA = 1050; // Velocidad suave (Preload)
     public static double VEL_LEJOS = 1150; // Velocidad fuerte (Desde el stack)
 

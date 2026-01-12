@@ -41,14 +41,14 @@ public class AutoAzulCerca extends LinearOpMode {
         Pose2d shootingPose = new Pose2d(-38, -32, Math.toRadians(225));
 
         Action stack1 = drive.actionBuilder(shootingPose)
-                .splineToLinearHeading(new Pose2d(-8,  -28, Math.toRadians(266)), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(-8,  -28, Math.toRadians(270)), Math.toRadians(0))
                 .build();
-        Pose2d fstack1 = new Pose2d(-8, -28, Math.toRadians(266));
+        Pose2d fstack1 = new Pose2d(-8, -28, Math.toRadians(270));
 
         Action take1 = drive.actionBuilder(fstack1)
-                .strafeToLinearHeading(new Vector2d(-8, -54), Math.toRadians(266))
+                .strafeToLinearHeading(new Vector2d(-8, -54), Math.toRadians(270))
                 .build();
-        Pose2d ftake1 = new Pose2d(-8, -54, Math.toRadians(266));
+        Pose2d ftake1 = new Pose2d(-8, -54, Math.toRadians(270));
 
         Action returnShootingPose = drive.actionBuilder(ftake1)
                 .strafeToLinearHeading(new Vector2d(-38.1, -32), Math.toRadians(225))
@@ -56,22 +56,28 @@ public class AutoAzulCerca extends LinearOpMode {
         Pose2d fsecondshoot = new Pose2d(-38.1, -32, Math.toRadians(225));
 
         Action stack2 = drive.actionBuilder(fsecondshoot)
-                .splineToLinearHeading(new Pose2d(16,-28, Math.toRadians(266)), Math.toRadians(0))
+                .splineToLinearHeading(new Pose2d(16,-28, Math.toRadians(270)), Math.toRadians(0))
                 .build();
-        Pose2d fstack2 = new Pose2d(16, -28, Math.toRadians(266));
+        Pose2d fstack2 = new Pose2d(16, -28, Math.toRadians(270));
 
         Action take2 = drive.actionBuilder(fstack2)
-                .strafeToLinearHeading(new Vector2d(16, -50), Math.toRadians(266))
+                .strafeToLinearHeading(new Vector2d(16, -50), Math.toRadians(270))
                 .build();
-        Pose2d ftake2 = new Pose2d(16, -50, Math.toRadians(266));
+        Pose2d ftake2 = new Pose2d(16, -50, Math.toRadians(270));
 
         Action returnFromStack2 = drive.actionBuilder(ftake2)
                 .strafeToLinearHeading(new Vector2d(-38.2, -32), Math.toRadians(225))
+                .build();
+        Pose2d shoot3 = new Pose2d(-38.2, -32, Math.toRadians(270));
+
+        Action stack3 = drive.actionBuilder(shoot3)
+                .strafeToLinearHeading(new Vector2d(25, -28), Math.toRadians(270))
                 .build();
 
 
         telemetry.addData("Estado", "Listo para arrancar...");
         telemetry.update();
+        robot.openGate();
         waitForStart();
 
         if (opModeIsActive()) {
@@ -90,8 +96,8 @@ public class AutoAzulCerca extends LinearOpMode {
                                             robot.openGate() // Pre-abrir
                                     ),
 
-                                    new SleepAction(1.25),
-                                    robot.feed(3.75), // Disparar
+                                    new SleepAction(0.15),
+                                    robot.feed(2.65), // Disparar
 
                                     // --- IR A STACK 1 ---
                                     new ParallelAction(
@@ -109,8 +115,8 @@ public class AutoAzulCerca extends LinearOpMode {
                                             robot.openGate()
                                     ),
 
-                                    new SleepAction(0.5),
-                                    robot.feed(3.75), // Disparo fuerte
+                                    new SleepAction(0.15),
+                                    robot.feed(2.65), // Disparo fuerte
 
                                     // --- IR A STACK 2 ---
                                     new ParallelAction(
@@ -129,8 +135,10 @@ public class AutoAzulCerca extends LinearOpMode {
                                             robot.openGate()
                                     ),
 
-                                    new SleepAction(0.5),
-                                    robot.feed(3.75),
+                                    new SleepAction(0.15),
+                                    robot.feed(2.65),
+
+                                    stack3,
 
                                     // FIN
                                     robot.stopShooter(),
