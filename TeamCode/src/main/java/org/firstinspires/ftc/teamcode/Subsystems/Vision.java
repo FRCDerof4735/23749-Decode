@@ -1,19 +1,16 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
 import android.util.Size;
-
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,37 +18,75 @@ public class Vision extends SubsystemBase {
 
     private AprilTagProcessor aprilTag;
     public VisionPortal visionPortal;
-
     private List<AprilTagDetection> detectedtags = new ArrayList<>();
+    private Telemetry telemetry;
 
-    private  Telemetry telemetry;
-
-
-    public Vision (HardwareMap hardwareMap, Telemetry telemetry) {
+    public Vision(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
-        aprilTag = aprilTag = new AprilTagProcessor.Builder()
+        // 1. Configurar el procesador de AprilTag
+        aprilTag = new AprilTagProcessor.Builder()
                 .setDrawTagID(true)
                 .setDrawTagOutline(true)
                 .setDrawAxes(true)
                 .setDrawCubeProjection(true)
                 .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
-                .setTagLibrary(org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase.getDecodeTagLibrary())
+                .setTagLibrary(AprilTagGameDatabase.getDecodeTagLibrary())
                 .build();
 
-        iniciarVisi(hardwareMap);
+        // 2. Iniciar la cámara
+        initVisionPortal(hardwareMap);
     }
 
-    public void visionUpdate () {
+    // Método para encender la cámara y el procesador
+    private void initVisionPortal(HardwareMap hardwareMap) {
+        if (visionPortal != null) return;
+
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+                .addProcessor(aprilTag)
+                .setCameraResolution(new Size(1280, 720))
+                .setStreamFormat(VisionPortal.StreamFormat.YUY2)
+                .enableLiveView(true)
+                .setAutoStopLiveView(true)
+                .build();
+    }
+
+    // --- OPTIMIZACIÓN CLAVE ---
+    // Este método corre automáticamente todo el tiempo mientras el OpMode está activo.
+    @Override
+    public void periodic() {
+        // Actualiza la lista de tags detectados constantemente
         detectedtags = aprilTag.getDetections();
     }
 
-    public List<AprilTagDetection> getDetectedtags () {
+    // Obtener la lista completa
+    public List<AprilTagDetection> getDetectedtags() {
         return detectedtags;
     }
 
-    public void displayDetection (AprilTagDetection detectedId) {
-        if (detectedId == null) {return;}
+    // Buscar un ID específico de forma segura (sin crashes)
+    public AprilTagDetection getIdSPECIFIC(int id) {
+        for (AprilTagDetection detection : detectedtags) {
+            if (detection.id == id) {
+                return detection;
+            }
+        }
+        return null; // Devuelve null si no lo encuentra
+    }
+
+    // Obtener el ID del primer tag que vea (seguro)
+    public int idTag() {
+        if (!detectedtags.isEmpty()) {
+            return detectedtags.get(0).id;
+        }
+        return -1; // Devuelve -1 si no ve nada
+    }
+
+    // Mostrar datos en el teléfono (Telemetry)
+    public void displayDetection(AprilTagDetection detectedId) {
+        if (detectedId == null) return;
+
         if (detectedId.metadata != null) {
             telemetry.addLine(String.format("\n==== (ID %d) %s", detectedId.id, detectedId.metadata.name));
             telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detectedId.ftcPose.x, detectedId.ftcPose.y, detectedId.ftcPose.z));
@@ -63,37 +98,9 @@ public class Vision extends SubsystemBase {
         }
     }
 
-    public AprilTagDetection getIdSPECIFIC (int id) {
-        for (AprilTagDetection detection : detectedtags) {
-            if (detection.id == id) {
-                return detection;
-            }
-        }
-        return null;
-    }
-
-    public void stop () {
+    public void stop() {
         if (visionPortal != null) {
             visionPortal.close();
         }
     }
-
-    public void iniciarVisi (HardwareMap hardwareMap) {
-        if (visionPortal != null) {return;}
-        VisionPortal.Builder builder = new VisionPortal.Builder();
-        builder.addProcessor(aprilTag);
-        builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
-        builder.setCameraResolution(new Size(1280, 720));
-        builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
-
-        visionPortal = builder.build();
-    }
-
-    public int idTag () {
-        AprilTagDetection tagVisto = detectedtags.get(0);
-        return tagVisto.id;
-    }
-
 }
-
-

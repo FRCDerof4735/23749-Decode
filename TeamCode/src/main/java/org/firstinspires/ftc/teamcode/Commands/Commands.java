@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.Commands;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
@@ -13,7 +10,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.Roller;
 import org.firstinspires.ftc.teamcode.Subsystems.Feeder;
 
 public class Commands {
-    private Shooter shooter = null;
+    private final Shooter shooter;
     private final Roller intake;
     private final Feeder feeder;
 
@@ -27,13 +24,15 @@ public class Commands {
     public double TARGET_TPS = currentTargetVel;
     public static double TOLERANCE_TPS = 25;
 
-
     private boolean shooterEnabled = false;
+    double VelFlyWheel;
 
     public Commands(Shooter shooterSubsystem, Roller intakeSubsystem, Feeder feederSubsystem) {
         this.shooter = shooterSubsystem;
         this.intake = intakeSubsystem;
         this.feeder = feederSubsystem;
+
+        VelFlyWheel = shooterSubsystem.getVelocidad();
     }
 
     // Comandos Shooter
@@ -52,6 +51,7 @@ public class Commands {
             return true;
         }
     }
+
 
     // Cambio Velocidad Cerca
     public class SetSpeedNear implements Action {
@@ -98,8 +98,7 @@ public class Commands {
     }
 
     // Comandos Feeder
-
-    // Secuencia de disparo
+        // Secuencia de disparo
     public class FeedShooter implements Action {
         private final ElapsedTime timer = new ElapsedTime();
         private final double timeToFeed;
@@ -135,7 +134,6 @@ public class Commands {
     }
 
     // Comandos Roller
-
     public class CollectAction implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
@@ -153,11 +151,11 @@ public class Commands {
         }
     }
 
-    public boolean isReadyToShoot = Math.abs(TARGET_TPS - shooter.shooterVel) < TOLERANCE_TPS;
+    public boolean isReadyToShoot = Math.abs(TARGET_TPS - VelFlyWheel) < TOLERANCE_TPS;
 
     // Lista de Comandos
 
-    //Shooter
+        //Shooter
     public Action maintainShooter() { return new MaintainShooterSpeed(); }
     public Action enableShooter() { return new EnableShooter(); }
     public Action stopShooter() { return new DisableShooter(); }
@@ -166,11 +164,11 @@ public class Commands {
     public Action setFarSpeed() { return new SetSpeedFar(); }
     public Action setMoveSpeed() { return new SetSpeedMovement(); }
 
-    //Roller
+        //Roller
     public Action collect() { return new CollectAction(); }
     public Action stopCollect() { return new StopCollect(); }
 
-    //Feeder
+        //Feeder
     public Action feed(double seconds) { return new FeedShooter(seconds); }
     public Action openGate() { return new OpenFeeder(); }
 }

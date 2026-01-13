@@ -15,12 +15,12 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Shooter extends SubsystemBase {
 
-    DcMotorEx shooterDer;
-    DcMotorEx shooterIzq;
+    DcMotorEx shooterDer, shooterIzq;
     Telemetry telemetry;
     HardwareMap hardwareMap;
     PIDFCoefficients shootPID;
-
+    public double VelIzq;
+    double VelDer;
 
     public Shooter(Telemetry telemetry, HardwareMap hardwareMap){
         this.hardwareMap = hardwareMap;
@@ -29,32 +29,30 @@ public class Shooter extends SubsystemBase {
         shootPID = new PIDFCoefficients(24,0.00,0,22.5);
 
         shooterIzq = hardwareMap.get(DcMotorEx.class, "shooterIzq");
-        shooterIzq.setDirection(DcMotorSimple.Direction.REVERSE);
-        shooterIzq.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooterIzq.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         shooterIzq.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shootPID);
-
+        shooterIzq.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        shooterIzq.setDirection(DcMotorSimple.Direction.REVERSE);
+        VelDer = (shooterIzq.getVelocity());
 
         shooterDer = hardwareMap.get(DcMotorEx.class, "shooterDer");
-        shooterIzq.setDirection(DcMotorSimple.Direction.FORWARD);
-        shooterDer.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shooterDer.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shootPID);
         shooterDer.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
         shooterDer.setDirection(DcMotorSimple.Direction.FORWARD);
-        shooterIzq.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shootPID);
-
-
+        VelIzq = (shooterIzq.getVelocity());
     }
 
     public void shoot(double Vel){
-        shooterIzq.setVelocity(-Vel);
+        shooterIzq.setVelocity(Vel);
         shooterDer.setVelocity(Vel);
     }
 
-    public double shooterVel = (shooterIzq.getVelocity() + shooterDer.getVelocity()) / 2;
+    public double getVelocidad() {
+        return ((VelDer + VelIzq)/2);}
+
     @Override
     public void periodic(){
         telemetry.addData("Izq Vel",shooterIzq.getVelocity());
-        telemetry.addData("Der Ve",shooterDer.getVelocity());
+        telemetry.addData("Der Vel",shooterDer.getVelocity());
     }
 
 
