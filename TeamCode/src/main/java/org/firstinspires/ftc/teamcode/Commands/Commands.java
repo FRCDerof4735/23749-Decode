@@ -1,80 +1,91 @@
 package org.firstinspires.ftc.teamcode.Commands;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
 import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-// Importamos tus piezas (subsistemas)
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Subsystems.Roller;
 import org.firstinspires.ftc.teamcode.Subsystems.Feeder;
 
-public class AutoCommands {
-    // Definimos las partes del robot
-    private final Shooter shooter;
+public class Commands {
+    private Shooter shooter = null;
     private final Roller intake;
     private final Feeder feeder;
 
-    // --- CONFIGURACIÓN DE VELOCIDADES ---
-    public static double VEL_MOVIMIENTO = 600; // Velocidad suave (Preload)
-    public static double VEL_CERCA = 1050; // Velocidad suave (Preload)
-    public static double VEL_LEJOS = 1150; // Velocidad fuerte (Desde el stack)
+    public static double VEL_MOVIMIENTO = 600;
+    public static double VEL_CERCA = 775;
+    public static double VEL_MEDIA = 1000;
+    public static double VEL_LEJOS = 1150;
 
-    // Variable que recuerda a qué velocidad queremos ir ahorita
     private double currentTargetVel = VEL_CERCA;
+    
+    public double TARGET_TPS = currentTargetVel;
+    public static double TOLERANCE_TPS = 25;
+
 
     private boolean shooterEnabled = false;
 
-    // El constructor recibe tus subsistemas reales
-    public AutoCommands(Shooter shooterSubsystem, Roller intakeSubsystem, Feeder feederSubsystem) {
+    public Commands(Shooter shooterSubsystem, Roller intakeSubsystem, Feeder feederSubsystem) {
         this.shooter = shooterSubsystem;
         this.intake = intakeSubsystem;
         this.feeder = feederSubsystem;
     }
 
-    // --- ACCIONES DE DISPARO ---
+    // Comandos Shooter
 
-    // 1. Mantiene la velocidad (Corre siempre de fondo)
+    // Mantener Velocidad
     public class MaintainShooterSpeed implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             if (shooterEnabled) {
-                // Le dice al shooter que vaya a la velocidad que tengamos seleccionada
                 shooter.shoot(currentTargetVel);
             } else {
-                shooter.shoot(0); // Apagar
+                shooter.shoot(0);
             }
-            // Datos para ver en la computadora
             packet.put("Shooter Target", currentTargetVel);
             packet.put("Shooter Enabled", shooterEnabled);
-            return true; // Retorna true para nunca morir (sigue corriendo)
+            return true;
         }
     }
 
-    // 2. Cambiar a modo CERCA
+    // Cambio Velocidad Cerca
     public class SetSpeedNear implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             currentTargetVel = VEL_CERCA;
-            return false; // Termina rápido
+            return false;
         }
     }
 
-    // 3. Cambiar a modo LEJOS
+    // Cambio Velocidad Media
+    public class setSpeedMedium implements Action {
+        @Override
+        public boolean run(@NonNull TelemetryPacket packet) {
+            currentTargetVel = VEL_MEDIA;
+            return false;
+        }
+    }
+
+    // Cambio Velocidad Lejos
     public class SetSpeedFar implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             currentTargetVel = VEL_LEJOS;
-            return false; // Termina rápido
+            return false;
         }
     }
 
+    // Cambio Velocidad de Movimiento
     public class SetSpeedMovement implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             currentTargetVel = VEL_MOVIMIENTO;
-            return false; // Termina rápido
+            return false;
         }
     }
 
@@ -86,9 +97,9 @@ public class AutoCommands {
         @Override public boolean run(@NonNull TelemetryPacket packet) { shooterEnabled = false; return false; }
     }
 
-    // --- ACCIONES DE ALIMENTACIÓN (FEEDER) ---
+    // Comandos Feeder
 
-    // Secuencia de disparo: Abre, empuja con intake, espera y cierra
+    // Secuencia de disparo
     public class FeedShooter implements Action {
         private final ElapsedTime timer = new ElapsedTime();
         private final double timeToFeed;
@@ -100,23 +111,22 @@ public class AutoCommands {
         public boolean run(@NonNull TelemetryPacket packet) {
             if (!initialized) {
                 timer.reset();
-                feeder.feed(); // Abrir servomotor
-                intake.setPower(1); // Intake ayuda a empujar
+                feeder.feed();
+                intake.setPower(1);
                 initialized = true;
             }
 
             if (timer.seconds() < timeToFeed) {
-                return true; // Sigue esperando
+                return true;
             } else {
-                feeder.close(); // Cierra
-                intake.setPower(0); // Apaga intake
-                return false; // Termina
+                feeder.close();
+                intake.setPower(0);
+                return false;
             }
         }
     }
 
-    // Solo abrir puerta (para pre-abrir)
-    public class OpenGate implements Action {
+    public class OpenFeeder implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             feeder.feed();
@@ -124,13 +134,13 @@ public class AutoCommands {
         }
     }
 
-    // --- ACCIONES DE INTAKE (ROLLER) ---
+    // Comandos Roller
 
     public class CollectAction implements Action {
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
             feeder.close(); // Por seguridad, cerramos puerta
-            intake.setPower(1.0); // Chupar pixels
+            intake.setPower(0.75);
             return false;
         }
     }
@@ -143,19 +153,24 @@ public class AutoCommands {
         }
     }
 
-    // --- LISTA DE COMANDOS (GETTERS) ---
-    // Estos son los que llamas desde tu Auto
+    public boolean isReadyToShoot = Math.abs(TARGET_TPS - shooter.shooterVel) < TOLERANCE_TPS;
+
+    // Lista de Comandos
+
+    //Shooter
     public Action maintainShooter() { return new MaintainShooterSpeed(); }
     public Action enableShooter() { return new EnableShooter(); }
     public Action stopShooter() { return new DisableShooter(); }
     public Action setNearSpeed() { return new SetSpeedNear(); }
+    public Action setMediumSpeed() { return new setSpeedMedium(); }
     public Action setFarSpeed() { return new SetSpeedFar(); }
     public Action setMoveSpeed() { return new SetSpeedMovement(); }
 
-
+    //Roller
     public Action collect() { return new CollectAction(); }
     public Action stopCollect() { return new StopCollect(); }
 
+    //Feeder
     public Action feed(double seconds) { return new FeedShooter(seconds); }
-    public Action openGate() { return new OpenGate(); }
+    public Action openGate() { return new OpenFeeder(); }
 }

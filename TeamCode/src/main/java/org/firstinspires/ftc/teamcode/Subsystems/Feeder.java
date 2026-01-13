@@ -18,11 +18,11 @@ public class Feeder extends SubsystemBase {
     }
 
     public void feed(){
-        Tope.setPosition(0.32);
+        Tope.setPosition(0.30);
     }
 
     public void close(){
-        Tope.setPosition(0.65);
+        Tope.setPosition(0.75);
     }
 
     @Override

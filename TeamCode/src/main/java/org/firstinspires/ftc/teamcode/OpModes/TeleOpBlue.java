@@ -3,13 +3,17 @@ package org.firstinspires.ftc.teamcode.OpModes;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.command.InstantCommand;
+import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.command.RunCommand;
+import com.arcrobotics.ftclib.command.SequentialCommandGroup;
+import com.arcrobotics.ftclib.command.WaitCommand;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 //Mecanum
+import org.firstinspires.ftc.teamcode.Commands.Commands;
 import org.firstinspires.ftc.teamcode.Commands.MecanumDriveCommand;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Subsystems.MecanumDriveSubsystem;
@@ -22,24 +26,25 @@ import org.firstinspires.ftc.teamcode.Subsystems.Feeder;
 
 @TeleOp
 public class TeleOpBlue extends CommandOpMode {
+    Roller feederSubsystem;
     Roller rollerSubsystem;
-    Shooter shooterSubsystem;
-    Feeder feederSubsystem;
-    Turret turretSubsystem;
     Vision vision;
 
 
     @Override
     public void initialize() {
         GamepadEx chassisDriver = new GamepadEx(gamepad1);
-        GamepadEx subsystemsDriver = new GamepadEx(gamepad2);
+        double right_trigger = gamepad1.right_trigger; // Recolectar (Gamepad 1)
+
         MecanumDrive sampleMecanumDrive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
         MecanumDriveSubsystem driveSystem = new MecanumDriveSubsystem(sampleMecanumDrive, true, true);
+
         rollerSubsystem = new Roller(telemetry, hardwareMap);
         vision = new Vision(hardwareMap, telemetry);
-        turretSubsystem = new Turret(hardwareMap, vision);
-        shooterSubsystem = new Shooter(telemetry, hardwareMap);
-        feederSubsystem = new Feeder(telemetry, hardwareMap);
+        Shooter Shooter = new Shooter(telemetry, hardwareMap);
+        Roller Intake = new Roller(telemetry, hardwareMap);
+        Feeder Feeder = new Feeder(telemetry, hardwareMap);
+        Commands robot = new Commands(Shooter, Intake, Feeder);
 
         //Chasis
         driveSystem.setDefaultCommand(new MecanumDriveCommand(driveSystem,
@@ -53,39 +58,55 @@ public class TeleOpBlue extends CommandOpMode {
 
         //Agarrar
         chassisDriver.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
-                .whileHeld(new InstantCommand(()-> rollerSubsystem.setPower(1)))
-                .whenReleased(new InstantCommand(()-> rollerSubsystem.setPower(0)));
+                .whileHeld(new InstantCommand(()-> robot.collect()))
+                .whenReleased(new InstantCommand(()-> robot.stopCollect()));
 
         //Soltar
         chassisDriver.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER)
                 .whileHeld(new InstantCommand(()-> rollerSubsystem.setPower(-0.65)))
                 .whenReleased(new InstantCommand(()-> rollerSubsystem.setPower(0)));
 
-        //Feed
-        chassisDriver.getGamepadButton(GamepadKeys.Button.B)
-                .whileHeld(new InstantCommand( feederSubsystem::close));
-
-        chassisDriver.getGamepadButton(GamepadKeys.Button.X)
-                .whileHeld(new InstantCommand( feederSubsystem::feed));
-
-        //Shooter
+        //Flywheel
 
         //Lejos
         chassisDriver.getGamepadButton(GamepadKeys.Button.Y)
-                .whileHeld(new InstantCommand(()-> shooterSubsystem.shoot(1150)))
-                .whenReleased(new InstantCommand(()->shooterSubsystem.shoot(0)));
+                .whenPressed(new InstantCommand(()-> robot.enableShooter()))
+                .whenPressed(new InstantCommand(()-> robot.setFarSpeed()));
 
-        chassisDriver.getGamepadButton(GamepadKeys.Button.X)
-                .whileHeld(new InstantCommand(()-> shooterSubsystem.shoot(-1400)))
-                .whenReleased(new InstantCommand(()->shooterSubsystem.shoot(0)));
+        //Media
+        chassisDriver.getGamepadButton(GamepadKeys.Button.B)
+                .whenPressed(new InstantCommand(()-> robot.enableShooter()))
+                .whenPressed(new InstantCommand(()-> robot.setMediumSpeed()));
 
         //Cerca
-        subsystemsDriver.getGamepadButton(GamepadKeys.Button.A)
-                .whileHeld(new InstantCommand(()-> shooterSubsystem.shoot(1050)))
-                .whenReleased(new InstantCommand(()->shooterSubsystem.shoot(0)));
+        chassisDriver.getGamepadButton(GamepadKeys.Button.A)
+                .whenPressed(new InstantCommand(()-> robot.enableShooter()))
+                .whenPressed(new InstantCommand(()-> robot.setNearSpeed()));
 
+        //Detener
+        chassisDriver.getGamepadButton(GamepadKeys.Button.X)
+                .whenPressed(new InstantCommand(()-> robot.stopShooter()));
 
-        //Autoacomodo (Dios Plan)
+        //Shooter
+
+        else if (right_trigger > 0.25) {
+
+            if (robot.isReadyToShoot) {
+                new SequentialCommandGroup(
+                        new InstantCommand(Feeder::feed),
+                        new WaitCommand(250),
+                        new InstantCommand(()->rollerSubsystem.setPower(1))
+                );
+            }
+
+            else {
+                new ParallelCommandGroup(
+                        new InstantCommand(Feeder::close),
+                        new InstantCommand(()-> rollerSubsystem.setPower(0))
+                );
+            }
+        }
+
 
 
 

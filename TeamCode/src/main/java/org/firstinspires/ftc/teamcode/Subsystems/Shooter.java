@@ -50,6 +50,7 @@ public class Shooter extends SubsystemBase {
         shooterDer.setVelocity(Vel);
     }
 
+    public double shooterVel = (shooterIzq.getVelocity() + shooterDer.getVelocity()) / 2;
     @Override
     public void periodic(){
         telemetry.addData("Izq Vel",shooterIzq.getVelocity());

@@ -1,20 +1,25 @@
 package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.AngularVelConstraint;
+import com.acmerobotics.roadrunner.MinVelConstraint;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.Commands.AutoCommands;
+import org.firstinspires.ftc.teamcode.Commands.Commands;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Subsystems.Roller;
 import org.firstinspires.ftc.teamcode.Subsystems.Feeder;
+
+import java.util.Arrays;
 
 @Autonomous
 public class AutoRojoLejos extends LinearOpMode {
@@ -28,10 +33,14 @@ public class AutoRojoLejos extends LinearOpMode {
         Roller Intake = new Roller(telemetry, hardwareMap);
         Feeder Feeder = new Feeder(telemetry, hardwareMap);
 
-        AutoCommands robot = new AutoCommands(Shooter, Intake, Feeder);
+        Commands robot = new Commands(Shooter, Intake, Feeder);
 
-        // TRAYECTORIAS
+        // Bajar Velocidad Movimiento
+        VelConstraint velComer = new MinVelConstraint(Arrays.asList(
+                drive.kinematics.new WheelVelConstraint(22.5),
+                new AngularVelConstraint(Math.toRadians(Math.PI))));
 
+        // Trayectorias
         Action preLoad = drive.actionBuilder(beginPose)
                 .strafeToLinearHeading(new Vector2d(-60, -11), Math.toRadians(210))
                 .build();
@@ -70,9 +79,14 @@ public class AutoRojoLejos extends LinearOpMode {
         Action stack3 = drive.actionBuilder(shoot3)
                 .strafeToLinearHeading(new Vector2d(25, -28), Math.toRadians(270))
                 .build();
+        Pose2d ftake3 = new Pose2d(42.5, -18, Math.toRadians(270));
+
+        Action take3 = drive.actionBuilder(ftake3)
+                .strafeToLinearHeading(new Vector2d(42.5, -56), Math.toRadians(270), velComer)
+                .build();
 
 
-        telemetry.addData("Estado", "Listo para arrancar...");
+        telemetry.addData("Estado", "Listo para iniciar");
         telemetry.update();
         robot.openGate();
         waitForStart();
@@ -80,54 +94,13 @@ public class AutoRojoLejos extends LinearOpMode {
         if (opModeIsActive()) {
             Actions.runBlocking(
                     new ParallelAction(
-                            // 1. PROCESO DE FONDO (Mantiene la velocidad del shooter siempre)
                             robot.maintainShooter(),
 
-                            // 2. SECUENCIA PRINCIPAL
                             new SequentialAction(
-                                    // --- CICLO 1: PRELOAD (Cerca) ---
+                                    // Ciclo 1
                                     new ParallelAction(
                                             preLoad,
-                                            robot.setNearSpeed(), // Velocidad baja
-                                            robot.enableShooter(),
-                                            robot.openGate() // Pre-abrir
-                                    ),
-
-                                    new SleepAction(0.15),
-                                    robot.feed(2.65), // Disparar
-
-                                    // --- IR A STACK 1 ---
-                                    new ParallelAction(
-                                            stack1,
-                                            robot.collect(),      // Prender Intake
-                                            robot.setMoveSpeed()   // Apagar Shooter para ahorrar energía
-                                    ),
-                                    take1, // Entrar al stack a comer
-
-                                    // --- REGRESO 1 (Lejos) ---
-                                    new ParallelAction(
-                                            returnShootingPose,
-                                            robot.stopCollect(),
-                                            robot.setNearSpeed(), // Velocidad baja
-                                            robot.openGate()
-                                    ),
-
-                                    new SleepAction(0.15),
-                                    robot.feed(2.65), // Disparo fuerte
-
-                                    // --- IR A STACK 2 ---
-                                    new ParallelAction(
-                                            stack2,
-                                            robot.collect(),
-                                            robot.setMoveSpeed()   // Apagar Shooter para ahorrar energía
-                                    ),
-                                    take2,
-
-                                    // --- REGRESO 2 (Lejos) ---
-                                    new ParallelAction(
-                                            returnFromStack2,
-                                            robot.stopCollect(),
-                                            robot.setNearSpeed(), // Velocidad baja
+                                            robot.setNearSpeed(),
                                             robot.enableShooter(),
                                             robot.openGate()
                                     ),
@@ -135,9 +108,53 @@ public class AutoRojoLejos extends LinearOpMode {
                                     new SleepAction(0.15),
                                     robot.feed(2.65),
 
-                                    stack3,
+                                    // Recoger Stack 1
+                                    new ParallelAction(
+                                            stack1,
+                                            robot.collect(),
+                                            robot.setMoveSpeed()
+                                    ),
+                                    take1,
 
-                                    // FIN
+                                    // Ciclo 2
+                                    new ParallelAction(
+                                            returnShootingPose,
+                                            robot.stopCollect(),
+                                            robot.setNearSpeed(),
+                                            robot.openGate()
+                                    ),
+
+                                    new SleepAction(0.15),
+                                    robot.feed(2.65),
+
+                                    // Recoger Stack 2
+                                    new ParallelAction(
+                                            stack2,
+                                            robot.collect(),
+                                            robot.setMoveSpeed()
+                                    ),
+                                    take2,
+
+                                    // Ciclo 3
+                                    new ParallelAction(
+                                            returnFromStack2,
+                                            robot.stopCollect(),
+                                            robot.setNearSpeed(),
+                                            robot.enableShooter(),
+                                            robot.openGate()
+                                    ),
+
+                                    new SleepAction(0.15),
+                                    robot.feed(2.65),
+
+                                    // Recoger Stack 3
+                                    new ParallelAction(
+                                            stack3,
+                                            robot.collect(),
+                                            robot.setMoveSpeed()
+                                    ),
+                                    take3,
+
                                     robot.stopShooter(),
                                     robot.stopCollect()
                             )

@@ -1,142 +1,162 @@
-package org.firstinspires.ftc.teamcode.ccm.auto;
+package org.firstinspires.ftc.teamcode.Autonomous;
 
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.AngularVelConstraint;
+import com.acmerobotics.roadrunner.MinVelConstraint;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.VelConstraint;
 import com.acmerobotics.roadrunner.ftc.Actions;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
-import org.firstinspires.ftc.teamcode.Commands.AutoCommands;
-import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.Commands.Commands;
 import org.firstinspires.ftc.teamcode.Subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.Subsystems.Roller;
 import org.firstinspires.ftc.teamcode.Subsystems.Feeder;
+
+import java.util.Arrays;
 
 @Autonomous
 public class AutoRojoCerca extends LinearOpMode {
     @Override
     public void runOpMode() {
-        //Declarar
-        Pose2d beginPose =  new Pose2d(-52, -52, Math.toRadians(225));
+        // Declarar
+        Pose2d beginPose = new Pose2d(-52, 52, Math.toRadians(120));
+
         MecanumDrive drive = new MecanumDrive(hardwareMap, beginPose);
 
         Shooter Shooter = new Shooter(telemetry, hardwareMap);
         Roller Intake = new Roller(telemetry, hardwareMap);
         Feeder Feeder = new Feeder(telemetry, hardwareMap);
+        Commands robot = new Commands(Shooter, Intake, Feeder);
 
-        AutoCommands robot = new AutoCommands(Shooter, Intake, Feeder);
+        // Bajar Velocidad Movimiento
+        VelConstraint velComer = new MinVelConstraint(Arrays.asList(
+                drive.kinematics.new WheelVelConstraint(15),
+                new AngularVelConstraint(Math.toRadians(Math.PI))));
 
-        // --- TRAYECTORIAS ---
+        // Trayectorias
         Action preLoad = drive.actionBuilder(beginPose)
-                .strafeToLinearHeading(new Vector2d(-38, 32), Math.toRadians(135))
+                .strafeToLinearHeading(new Vector2d(-36, 34), Math.toRadians(125))
                 .build();
-        Pose2d shootingPose = new Pose2d(-38, 32, Math.toRadians(135));
+        Pose2d shootingPose = new Pose2d(-36, 34, Math.toRadians(125));
 
         Action stack1 = drive.actionBuilder(shootingPose)
-                .splineToLinearHeading(new Pose2d(-8, 28, Math.toRadians(90)), Math.toRadians(0))
+                .strafeToLinearHeading(new Vector2d(-5.5, 22), Math.toRadians(90))
                 .build();
-        Pose2d fstack1 = new Pose2d(-8, 28, Math.toRadians(90));
+        Pose2d fstack1 = new Pose2d(-5.5, 22, Math.toRadians(90));
 
         Action take1 = drive.actionBuilder(fstack1)
-                .strafeToLinearHeading(new Vector2d(-8, 54), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(-5.5, 60), Math.toRadians(90), velComer)
                 .build();
-        Pose2d ftake1 = new Pose2d(-8, 54, Math.toRadians(90));
+        Pose2d ftake1 = new Pose2d(-5.5, 60, Math.toRadians(90));
 
         Action returnShootingPose = drive.actionBuilder(ftake1)
-                .strafeToLinearHeading(new Vector2d(-38.1, 32), Math.toRadians(135))
+                .strafeToLinearHeading(new Vector2d(-36, 34), Math.toRadians(125))
                 .build();
-        Pose2d fsecondshoot = new Pose2d(-38.1, 32, Math.toRadians(135));
+        Pose2d fsecondshoot = new Pose2d(-36, 34, Math.toRadians(125));
 
         Action stack2 = drive.actionBuilder(fsecondshoot)
-                .splineToLinearHeading(new Pose2d(16, 28, Math.toRadians(90)), Math.toRadians(0))
+                .strafeToLinearHeading(new Vector2d(19, 22), Math.toRadians(90))
                 .build();
-        Pose2d fstack2 = new Pose2d(16, 28, Math.toRadians(90));
+        Pose2d fstack2 = new Pose2d(18.5, 22, Math.toRadians(90));
 
         Action take2 = drive.actionBuilder(fstack2)
-                .strafeToLinearHeading(new Vector2d(18, 50), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(19, 60), Math.toRadians(90), velComer)
                 .build();
-        Pose2d ftake2 = new Pose2d(18, 50, Math.toRadians(90));
+        Pose2d ftake2 = new Pose2d(18.5, 60, Math.toRadians(90));
 
         Action returnFromStack2 = drive.actionBuilder(ftake2)
-                .strafeToLinearHeading(new Vector2d(-38.2, 32), Math.toRadians(135))
+                .strafeToLinearHeading(new Vector2d(-38, 34), Math.toRadians(125))
                 .build();
-        Pose2d shoot3 = new Pose2d(-38.2, 32, Math.toRadians(90));
+        Pose2d shoot3 = new Pose2d(-38, 34, Math.toRadians(125));
 
         Action stack3 = drive.actionBuilder(shoot3)
-                .strafeToLinearHeading(new Vector2d(25, 28), Math.toRadians(90))
+                .strafeToLinearHeading(new Vector2d(43, 18), Math.toRadians(90))
+                .build();
+        Pose2d ftake3 = new Pose2d(42.5, 18, Math.toRadians(90));
+
+        Action take3 = drive.actionBuilder(ftake3)
+                .strafeToLinearHeading(new Vector2d(42.5, 60), Math.toRadians(90), velComer)
                 .build();
 
 
-        telemetry.addData("Estado", "Esperando inicio...");
+        //Init
+        telemetry.addData("Estado", "Listo para iniciar");
         telemetry.update();
+        robot.openGate();
         waitForStart();
 
+        //Play
         if (opModeIsActive()) {
             Actions.runBlocking(
                     new ParallelAction(
-                            // 1. PROCESO DE FONDO (Mantiene la velocidad del shooter siempre)
                             robot.maintainShooter(),
 
-                            // 2. SECUENCIA PRINCIPAL
                             new SequentialAction(
-                                    // --- CICLO 1: PRELOAD (Cerca) ---
+                                    // Ciclo 1
                                     new ParallelAction(
                                             preLoad,
-                                            robot.setNearSpeed(), // Velocidad baja
+                                            robot.setNearSpeed(),
                                             robot.enableShooter(),
-                                            robot.openGate() // Pre-abrir
+                                            robot.openGate()
                                     ),
 
-                                    new SleepAction(0.15),
-                                    robot.feed(2.65), // Disparar
+                                    new SleepAction(0.5),
+                                    robot.feed(2.65),
 
-                                    // --- IR A STACK 1 ---
+                                    // Recoger Stack 1
                                     new ParallelAction(
                                             stack1,
-                                            robot.collect(),      // Prender Intake
-                                            robot.setMoveSpeed()   // Apagar Shooter para ahorrar energía
+                                            robot.collect(),
+                                            robot.setMoveSpeed()
                                     ),
-                                    take1, // Entrar al stack a comer
+                                    take1,
 
-                                    // --- REGRESO 1 (Lejos) ---
+                                    // Ciclo 2
                                     new ParallelAction(
                                             returnShootingPose,
                                             robot.stopCollect(),
-                                            robot.setNearSpeed(), // Velocidad baja
+                                            robot.setNearSpeed(),
                                             robot.openGate()
                                     ),
 
-                                    new SleepAction(0.15),
-                                    robot.feed(2.65), // Disparo fuerte
+                                    new SleepAction(0.25),
+                                    robot.feed(2.65),
 
-                                    // --- IR A STACK 2 ---
+                                    // Recoger Stack 2
                                     new ParallelAction(
                                             stack2,
                                             robot.collect(),
-                                            robot.setMoveSpeed()   // Apagar Shooter para ahorrar energía
+                                            robot.setMoveSpeed()
                                     ),
                                     take2,
 
-                                    // --- REGRESO 2 (Lejos) ---
+                                    // Ciclo 3
                                     new ParallelAction(
                                             returnFromStack2,
                                             robot.stopCollect(),
-                                            robot.setNearSpeed(), // Velocidad baja
+                                            robot.setNearSpeed(),
                                             robot.enableShooter(),
                                             robot.openGate()
                                     ),
 
-                                    new SleepAction(0.15),
+                                    new SleepAction(0.25),
                                     robot.feed(2.65),
 
-                                    stack3,
+                                    // Recoger Stack 3
+                                    new ParallelAction(
+                                            stack3,
+                                            robot.collect(),
+                                            robot.setMoveSpeed()
+                                    ),
+                                    take3,
 
-                                    // FIN
                                     robot.stopShooter(),
                                     robot.stopCollect()
                             )
